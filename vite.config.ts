@@ -48,22 +48,28 @@ export default async (env: {
   if (command === "build") {
     try {
       const { nitro } = await import("nitro/vite");
-      internalPlugins.push(
-        nitro({
-          preset: "cloudflare-module",
-          output: {
-            dir: "dist",
-            serverDir: "dist/server",
-            publicDir: "dist/client",
-          },
-          cloudflare: {
-            nodeCompat: true,
-            deployConfig: true,
-          },
-        }),
+      const isVercel = Boolean(
+        process.env["VERCEL"] || process.env["VERCEL_ENV"] || process.env["CI"]?.includes("vercel"),
       );
-    } catch {
-      // nitro is optional for dev
+      const preset = isVercel ? "vercel" : "cloudflare-module";
+      // eslint-disable-next-line no-console
+      console.log(`\n[tanstack-start] Using Nitro preset: ${preset} (isVercel=${isVercel})`);
+      const nitroOptions: Record<string, unknown> = { preset };
+      if (isVercel) {
+        // Nitro's "vercel" preset generates .vercel/output automatically
+        nitroOptions["output"] = { dir: ".vercel/output" };
+      } else {
+        nitroOptions["output"] = {
+          dir: "dist",
+          serverDir: "dist/server",
+          publicDir: "dist/client",
+        };
+        nitroOptions["cloudflare"] = { nodeCompat: true, deployConfig: true };
+      }
+      internalPlugins.push(nitro(nitroOptions));
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[tanstack-start] Nitro plugin not loaded:", (err as Error).message);
     }
   }
 
