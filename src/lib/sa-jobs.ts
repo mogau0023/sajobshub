@@ -34,8 +34,8 @@ export type Job = {
   updated_at: string;
 };
 
-export const SITE_EMAIL = "vacancies@sajobs.co.za";
-export const SITE_URL = "https://sajobs.co.za";
+export const SITE_EMAIL = "vacancies@sacareerhub.co.za";
+export const SITE_URL = "https://sacareerhub.co.za";
 
 export const PROVINCES = [
   "Gauteng",

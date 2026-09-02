@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard } from "@/components/job-card";
+import { LoadingSpinner, SpinnerOnly } from "@/components/loading-spinner";
 import { jobReportsCol, fbAddDoc } from "@/integrations/firebase/client";
 import { fetchJobBySlug, fetchRelatedJobs } from "@/lib/job-queries";
 import { trackApplyClick, trackJobView } from "@/lib/analytics";
@@ -28,14 +29,14 @@ export const Route = createFileRoute("/jobs/$slug")({
   head: ({ loaderData, params }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Vacancy unavailable — SA Jobs" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Vacancy unavailable — SA Career Hub" }, { name: "robots", content: "noindex" }],
       };
     }
     const { job } = loaderData;
-    const title = `${job.title} at ${job.company} — ${job.city || job.province} | SA Jobs`;
+    const title = `${job.title} at ${job.company} — ${job.city || job.province} | SA Career Hub`;
     const description = `${job.employment_type} vacancy: ${job.title} at ${job.company} in ${
       job.city ? `${job.city}, ` : ""
-    }${job.province}. Closing ${formatDate(job.closing_date)}. Apply free on SA Jobs.`;
+    }${job.province}. Closing ${formatDate(job.closing_date)}. Apply free on SA Career Hub.`;
     const url = `${SITE_URL}/jobs/${params.slug}`;
     const image =
       job.company_logo_url && /^https:\/\//.test(job.company_logo_url)
@@ -213,7 +214,7 @@ function JobDetail() {
   const left = daysLeft(job.closing_date);
   const destination = applyDestination(job);
 
-  const { data: related } = useQuery({
+  const { data: related, isLoading: relatedLoading } = useQuery({
     queryKey: ["related-jobs", job.id],
     queryFn: () => fetchRelatedJobs(job),
   });
@@ -380,16 +381,21 @@ function JobDetail() {
         </div>
 
         <p className="mt-5 rounded-lg bg-secondary p-3 text-xs text-navy">
-          SA Jobs never charges application fees. Never pay money to secure a job or an interview.
+          SA Career Hub never charges application fees. Never pay money to secure a job or an interview.
         </p>
 
-        {related && related.length > 0 && (
+        {(relatedLoading || (related && related.length > 0)) && (
           <section className="mt-10">
-            <h2 className="mb-4 font-display text-lg font-bold">Related vacancies</h2>
+            <h2 className="mb-4 font-display text-lg font-bold">
+              Related vacancies
+              {relatedLoading && (
+                <SpinnerOnly size="sm" className="ml-2 align-middle text-muted-foreground" />
+              )}
+            </h2>
             <div className="space-y-4">
-              {related.map((r) => (
-                <JobCard key={r.id} job={r} />
-              ))}
+              {relatedLoading && <LoadingSpinner label="Loading related vacancies…" />}
+              {!relatedLoading &&
+                related?.map((r) => <JobCard key={r.id} job={r} />)}
             </div>
           </section>
         )}

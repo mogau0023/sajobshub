@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard } from "@/components/job-card";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { fetchJobs } from "@/lib/job-queries";
 import { CATEGORIES, fromSlug } from "@/lib/sa-jobs";
 
@@ -16,10 +17,10 @@ export const Route = createFileRoute("/category/$slug")({
   head: ({ loaderData }) => {
     if (!loaderData) {
       return {
-        meta: [{ title: "Category not found — SA Jobs" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Category not found — SA Career Hub" }, { name: "robots", content: "noindex" }],
       };
     }
-    const title = `${loaderData.category} in South Africa — SA Jobs`;
+    const title = `${loaderData.category} in South Africa — SA Career Hub`;
     const description = `Latest ${loaderData.category.toLowerCase()} in South Africa. Verified vacancies with closing dates and direct application links, updated daily.`;
     return {
       meta: [
@@ -54,7 +55,7 @@ function Missing({ label }: { label: string }) {
 
 function CategoryPage() {
   const { category } = Route.useLoaderData();
-  const { data } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ["category-jobs", category],
     queryFn: () => fetchJobs({ category }),
   });
@@ -65,14 +66,21 @@ function CategoryPage() {
       <main className="mx-auto max-w-5xl px-4 py-6">
         <h1 className="font-display text-2xl font-bold">{category} in South Africa</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {data?.total ?? 0} current vacancy{data?.total === 1 ? "" : "s"} in this category.
+          {isLoading ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-solid border-navy border-r-transparent border-t-transparent" />
+              Loading vacancies…
+            </span>
+          ) : (
+            `${data?.total ?? 0} current vacancy${data?.total === 1 ? "" : "s"} in this category.`
+          )}
         </p>
 
         <div className="mt-6 space-y-4">
-          {data?.jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-          {data && data.jobs.length === 0 && (
+          {isLoading && <LoadingSpinner label="Loading vacancies…" />}
+          {!isLoading &&
+            data?.jobs.map((job) => <JobCard key={job.id} job={job} />)}
+          {!isLoading && data && data.jobs.length === 0 && (
             <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
               No vacancies in this category right now. Check back soon or browse all jobs.
             </p>

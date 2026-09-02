@@ -16,16 +16,16 @@ import {
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Administrator Sign In — SA Jobs" },
+      { title: "Administrator Sign In — SA Career Hub" },
       {
         name: "description",
         content:
-          "Secure sign-in for the SA Jobs editorial team who publish and maintain verified vacancies.",
+          "Secure sign-in for the SA Career Hub editorial team who publish and maintain verified vacancies.",
       },
-      { property: "og:title", content: "Administrator Sign In — SA Jobs" },
+      { property: "og:title", content: "Administrator Sign In — SA Career Hub" },
       {
         property: "og:description",
-        content: "Editorial access to the SA Jobs vacancy management dashboard.",
+        content: "Editorial access to the SA Career Hub vacancy management dashboard.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -110,7 +110,7 @@ function AuthPage() {
       <main className="mx-auto w-full max-w-md flex-1 px-4 py-12">
         <h1 className="font-display text-2xl font-bold text-navy">Administrator sign in</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This area is restricted to the SA Jobs editorial team. Job seekers do not need an account.
+          This area is restricted to the SA Career Hub editorial team. Job seekers do not need an account.
         </p>
 
         {deniedEmail && (

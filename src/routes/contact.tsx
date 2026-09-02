@@ -10,16 +10,16 @@ import { SITE_EMAIL } from "@/lib/sa-jobs";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact SA Jobs — Vacancy Submissions & Support" },
+      { title: "Contact SA Career Hub — Vacancy Submissions & Support" },
       {
         name: "description",
         content:
-          "Get in touch with the SA Jobs team about vacancy submissions, corrections, suspicious listings or general enquiries.",
+          "Get in touch with the SA Career Hub team about vacancy submissions, corrections, suspicious listings or general enquiries.",
       },
-      { property: "og:title", content: "Contact SA Jobs" },
+      { property: "og:title", content: "Contact SA Career Hub" },
       {
         property: "og:description",
-        content: "Reach the SA Jobs editorial team for submissions and support.",
+        content: "Reach the SA Career Hub editorial team for submissions and support.",
       },
     ],
   }),
@@ -54,7 +54,7 @@ function ContactPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-        <h1 className="font-display text-2xl font-bold">Contact SA Jobs</h1>
+        <h1 className="font-display text-2xl font-bold">Contact SA Career Hub</h1>
         <p className="text-sm text-muted-foreground">
           Send us a message and we'll reply by email, usually within one working day. You can also
           email us directly at{" "}

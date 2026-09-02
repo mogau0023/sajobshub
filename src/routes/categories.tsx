@@ -7,7 +7,7 @@ import { CATEGORIES, slugify } from "@/lib/sa-jobs";
 export const Route = createFileRoute("/categories")({
   head: () => ({
     meta: [
-      { title: "Job Categories in South Africa — SA Jobs" },
+      { title: "Job Categories in South Africa — SA Career Hub" },
       {
         name: "description",
         content:
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/categories")({
       { property: "og:title", content: "Job Categories in South Africa" },
       {
         property: "og:description",
-        content: "Every SA Jobs vacancy category in one place, updated daily.",
+        content: "Every SA Career hub vacancy category in one place, updated daily.",
       },
     ],
   }),

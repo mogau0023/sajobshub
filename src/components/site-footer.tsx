@@ -6,7 +6,7 @@ export function SiteFooter() {
     <footer className="mt-12 border-t border-border bg-card px-4 py-8">
       <div className="mx-auto max-w-5xl space-y-6">
         <div className="space-y-2">
-          <h4 className="font-display font-bold">About SA Jobs</h4>
+          <h4 className="font-display font-bold">About SaCareerHub</h4>
           <p className="text-sm leading-relaxed text-muted-foreground">
             South Africa's dedicated vacancy portal. We manually curate opportunities from trusted
             employers nationwide to help you find your next career step.
@@ -56,8 +56,8 @@ export function SiteFooter() {
 
         <div className="border-t border-border pt-6">
           <p className="text-[10px] text-muted-foreground">
-            © {new Date().getFullYear()} SA Jobs. Not affiliated with the South African government.
-            SA Jobs never charges applicants. Applicants are advised to verify vacancies before
+            © {new Date().getFullYear()} SaCareerHub. Not affiliated with the South African government.
+            SaCareerHub never charges applicants. Applicants are advised to verify vacancies before
             sharing sensitive information.
           </p>
         </div>

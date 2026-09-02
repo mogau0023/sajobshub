@@ -5,6 +5,7 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard } from "@/components/job-card";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { fetchLatestJobs, fetchPublishedCount } from "@/lib/job-queries";
 import { PROVINCES, slugify } from "@/lib/sa-jobs";
 import gautengImg from "@/assets/gauteng.jpg";
@@ -13,13 +14,13 @@ import westernCapeImg from "@/assets/western-cape.jpg";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SA Jobs — Latest South African Vacancies & Learnerships" },
+      { title: "SA Career Hub — Latest South African Vacancies & Learnerships" },
       {
         name: "description",
         content:
           "Browse the latest South African vacancies, government jobs, learnerships and internships. Free to search by province, city and category.",
       },
-      { property: "og:title", content: "SA Jobs — Latest South African Vacancies" },
+      { property: "og:title", content: "SA Career Hub — Latest South African Vacancies" },
       {
         property: "og:description",
         content:
@@ -41,14 +42,15 @@ function Home() {
   const navigate = useNavigate();
   const [keyword, setKeyword] = useState("");
 
-  const { data: jobs, error: jobsError } = useQuery({
+  const { data: jobs, isLoading: jobsLoading, error: jobsError } = useQuery({
     queryKey: ["latest-jobs"],
     queryFn: () => fetchLatestJobs(6),
   });
-  const { data: publishedCount, error: countError } = useQuery({
+  const { data: publishedCount, isLoading: countLoading, error: countError } = useQuery({
     queryKey: ["jobs-count"],
     queryFn: fetchPublishedCount,
   });
+  const isLoading = jobsLoading || countLoading;
   const total =
     Array.isArray(jobs) && jobs.length > 0
       ? Math.max(publishedCount ?? 0, jobs.length)
@@ -61,7 +63,7 @@ function Home() {
       <section className="bg-navy px-4 pb-8 pt-4">
         <div className="mx-auto max-w-5xl space-y-3">
           <h1 className="sr-only">
-            SA Jobs — South African vacancies, learnerships and internships
+            SA Career Hub — South African vacancies, learnerships and internships
           </h1>
           <form
             onSubmit={(e) => {
@@ -109,7 +111,14 @@ function Home() {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="font-display text-lg font-bold">Latest Vacancies</h2>
           <span className="text-xs font-medium text-muted-foreground">
-            {total ?? 0} job{total === 1 ? "" : "s"} available
+            {isLoading ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-solid border-navy border-r-transparent border-t-transparent" />
+                Loading…
+              </span>
+            ) : (
+              `${total ?? 0} job${total === 1 ? "" : "s"} available`
+            )}
           </span>
         </div>
 
@@ -121,16 +130,25 @@ function Home() {
               create it automatically.
             </p>
           )}
-          {jobs?.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-          {Array.isArray(jobs) && jobs.length === 0 && !jobsError && (
+          {isLoading && <LoadingSpinner label="Loading latest vacancies…" />}
+          {!isLoading &&
+            jobs?.map((job) => <JobCard key={job.id} job={job} />)}
+          {!isLoading && Array.isArray(jobs) && jobs.length === 0 && !jobsError && (
             <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
               {(publishedCount ?? 0) > 0
                 ? "Vacancies are being indexed — refresh in a minute or browse the All Jobs page."
                 : "No vacancies have been published yet. In the admin panel, make sure each job's Status is set to 'published'."}
             </p>
           )}
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <Link
+            to="/jobs"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-card py-3 font-bold shadow-sm ring-1 ring-border"
+          >
+            View All Vacancies
+          </Link>
         </div>
 
         <section className="mt-10">
@@ -184,15 +202,6 @@ function Home() {
             ))}
           </div>
         </section>
-
-        <div className="mt-8 flex justify-center">
-          <Link
-            to="/jobs"
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-card py-3 font-bold shadow-sm ring-1 ring-border"
-          >
-            View All Vacancies
-          </Link>
-        </div>
       </main>
 
       <SiteFooter />

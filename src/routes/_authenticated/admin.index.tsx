@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin-shell";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
   jobsCol,
   pageEventsCol,
@@ -23,12 +24,12 @@ import { formatDate, isExpired, slugify } from "@/lib/sa-jobs";
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Vacancy Dashboard — SA Jobs Admin" },
-      { name: "description", content: "Manage published, draft and archived SA Jobs vacancies." },
-      { property: "og:title", content: "Vacancy Dashboard — SA Jobs Admin" },
+      { title: "Vacancy Dashboard — SA Career Hub Admin" },
+      { name: "description", content: "Manage published, draft and archived SA Career Hub vacancies." },
+      { property: "og:title", content: "Vacancy Dashboard — SA Career Hub Admin" },
       {
         property: "og:description",
-        content: "Internal dashboard for managing SA Jobs vacancy listings.",
+        content: "Internal dashboard for managing SA Career Hub vacancy listings.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -153,7 +154,11 @@ function AdminDashboard() {
       </div>
 
       <div className="mt-6 rounded-lg border border-border bg-card shadow-sm">
-        {isLoading && <p className="p-5 text-sm text-muted-foreground">Loading vacancies…</p>}
+        {isLoading && (
+          <div className="p-5">
+            <LoadingSpinner label="Loading vacancies…" />
+          </div>
+        )}
         {error && (
           <p className="p-5 text-sm text-destructive">
             Could not load vacancies. Your account may not have administrator rights yet.
@@ -162,7 +167,8 @@ function AdminDashboard() {
         {!isLoading && !error && jobs.length === 0 && (
           <p className="p-5 text-sm text-muted-foreground">No vacancies captured yet.</p>
         )}
-        <ul className="divide-y divide-border">
+        {!isLoading && !error && jobs.length > 0 && (
+          <ul className="divide-y divide-border">
           {jobs.map((job) => (
             <li key={job.id} className="p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -248,6 +254,7 @@ function AdminDashboard() {
             </li>
           ))}
         </ul>
+        )}
       </div>
     </AdminShell>
   );

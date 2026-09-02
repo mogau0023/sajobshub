@@ -6,17 +6,17 @@ import { SiteFooter } from "@/components/site-footer";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About SA Jobs — Trusted South African Vacancy Portal" },
+      { title: "About SA Career Hub — Trusted South African Vacancy Portal" },
       {
         name: "description",
         content:
-          "SA Jobs is a free, manually curated South African vacancy portal. Learn how we verify listings and why we never charge job seekers.",
+          "SA Career Hub is a free, manually curated South African vacancy portal. Learn how we verify listings and why we never charge job seekers.",
       },
-      { property: "og:title", content: "About SA Jobs" },
+      { property: "og:title", content: "About SA Career Hub" },
       {
         property: "og:description",
         content:
-          "How SA Jobs curates and verifies South African vacancies, learnerships and internships.",
+          "How SA Career Hub curates and verifies South African vacancies, learnerships and internships.",
       },
     ],
   }),
@@ -28,9 +28,9 @@ function AboutPage() {
     <div className="min-h-screen bg-background text-foreground">
       <SiteHeader />
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
-        <h1 className="font-display text-2xl font-bold">About SA Jobs</h1>
+        <h1 className="font-display text-2xl font-bold">About SA Career Hub</h1>
         <p className="text-sm leading-relaxed text-foreground/90">
-          SA Jobs is a South African job discovery platform. We publish vacancies, learnerships,
+          SA Career Hub is a South African job discovery platform. We publish vacancies, learnerships,
           internships and apprenticeships from government departments, municipalities, state-owned
           entities and private employers so that every South African can find real work without
           paying a cent.
@@ -49,7 +49,7 @@ function AboutPage() {
         <section className="space-y-2">
           <h2 className="font-display text-lg font-bold">Our promise to job seekers</h2>
           <ul className="space-y-2 text-sm leading-relaxed text-foreground/90">
-            <li>• Browsing and applying through SA Jobs is always free.</li>
+            <li>• Browsing and applying through SA Career Hub is always free.</li>
             <li>• We never ask for a registration fee, placement fee or "admin" payment.</li>
             <li>• We link to the original source so you can verify each vacancy yourself.</li>
             <li>

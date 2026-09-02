@@ -7,7 +7,7 @@ import { PROVINCES, slugify } from "@/lib/sa-jobs";
 export const Route = createFileRoute("/provinces")({
   head: () => ({
     meta: [
-      { title: "Jobs by Province in South Africa — SA Jobs" },
+      { title: "Jobs by Province in South Africa — SA Career Hub" },
       {
         name: "description",
         content:

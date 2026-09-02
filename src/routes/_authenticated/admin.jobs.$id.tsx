@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AdminShell } from "@/components/admin-shell";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
   jobsCol,
   fbAddDoc,
@@ -28,12 +29,12 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/jobs/$id")({
   head: () => ({
     meta: [
-      { title: "Vacancy Editor — SA Jobs Admin" },
-      { name: "description", content: "Capture and edit SA Jobs vacancy listings." },
-      { property: "og:title", content: "Vacancy Editor — SA Jobs Admin" },
+      { title: "Vacancy Editor — SA Career Hub Admin" },
+      { name: "description", content: "Capture and edit SA Career Hub vacancy listings." },
+      { property: "og:title", content: "Vacancy Editor — SA Career Hub Admin" },
       {
         property: "og:description",
-        content: "Internal vacancy capture form for the SA Jobs editorial team.",
+        content: "Internal vacancy capture form for the SA Career Hub editorial team.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -165,7 +166,7 @@ function JobEditor() {
   if (!isNew && isLoading) {
     return (
       <AdminShell title="Vacancy editor">
-        <p className="text-sm text-muted-foreground">Loading vacancy…</p>
+        <LoadingSpinner label="Loading vacancy…" />
       </AdminShell>
     );
   }

@@ -55,52 +55,45 @@ function baseConstraints(): QueryConstraint[] {
 export async function fetchJobs(filters: JobFilters) {
   const page = filters.page && filters.page > 0 ? filters.page : 1;
 
-  const constraints: QueryConstraint[] = baseConstraints();
+  const filterConstraints: QueryConstraint[] = baseConstraints();
+  const orderConstraints: QueryConstraint[] = [];
 
-  if (filters.province) constraints.push(fbWhere("province", "==", filters.province));
-  if (filters.category) constraints.push(fbWhere("category", "==", filters.category));
-  if (filters.type) constraints.push(fbWhere("employment_type", "==", filters.type));
-  if (filters.experience) constraints.push(fbWhere("experience_level", "==", filters.experience));
+  if (filters.province) filterConstraints.push(fbWhere("province", "==", filters.province));
+  if (filters.category) filterConstraints.push(fbWhere("category", "==", filters.category));
+  if (filters.type) filterConstraints.push(fbWhere("employment_type", "==", filters.type));
+  if (filters.experience) filterConstraints.push(fbWhere("experience_level", "==", filters.experience));
   if (filters.education)
-    constraints.push(fbWhere("education_requirement", "==", filters.education));
+    filterConstraints.push(fbWhere("education_requirement", "==", filters.education));
   if (filters.city) {
     const cl = filters.city.toLowerCase();
-    constraints.push(fbWhere("city", ">=", cl));
-    constraints.push(fbWhere("city", "<", cl + "\uf8ff"));
+    filterConstraints.push(fbWhere("city", ">=", cl));
+    filterConstraints.push(fbWhere("city", "<", cl + "\uf8ff"));
   }
   if (filters.salary) {
     const [min, max] = filters.salary.split("-").map(Number);
-    if (!Number.isNaN(min)) constraints.push(fbWhere("salary_max", ">=", min));
-    if (!Number.isNaN(max)) constraints.push(fbWhere("salary_min", "<=", max));
+    if (!Number.isNaN(min)) filterConstraints.push(fbWhere("salary_max", ">=", min));
+    if (!Number.isNaN(max)) filterConstraints.push(fbWhere("salary_min", "<=", max));
   }
   if (filters.posted) {
     const days = Number(filters.posted);
     if (!Number.isNaN(days)) {
       const since = new Date(Date.now() - days * 86400000).toISOString();
-      constraints.push(fbWhere("posted_at", ">=", since));
+      filterConstraints.push(fbWhere("posted_at", ">=", since));
     }
   }
 
   if (filters.sort === "closing") {
-    constraints.push(fbOrderBy("closing_date", "asc"));
+    orderConstraints.push(fbOrderBy("closing_date", "asc"));
   } else {
-    constraints.push(fbOrderBy("featured", "desc"));
-    constraints.push(fbOrderBy("posted_at", "desc"));
+    orderConstraints.push(fbOrderBy("featured", "desc"));
+    orderConstraints.push(fbOrderBy("posted_at", "desc"));
   }
 
   const textTerm = filters.q ? filters.q.replace(/[%,()]/g, " ").trim() : "";
 
   const fetchLimit = Math.min(500, page * PAGE_SIZE * 3 + 200);
 
-  const countQuery = fbQuery(
-    jobsCol(),
-    ...baseConstraints(),
-    ...constraints.filter(
-      (c) =>
-        !((c as { type?: string }).type === "orderBy") &&
-        !((c as { type?: string }).type === "limit"),
-    ),
-  );
+  const countQuery = fbQuery(jobsCol(), ...filterConstraints);
   let total = 0;
   try {
     const snap = await fbGetCount(countQuery);
@@ -110,19 +103,52 @@ export async function fetchJobs(filters: JobFilters) {
     total = 0;
   }
 
-  const dataQuery = fbQuery(jobsCol(), ...constraints, fbLimit(fetchLimit));
-  let snap;
+  const allConstraints = [...filterConstraints, ...orderConstraints];
+
+  const dataQuery = fbQuery(jobsCol(), ...allConstraints, fbLimit(fetchLimit));
+  let docs: (Job & { _snap: DocumentSnapshot })[] = [];
+  let docsFetched = false;
+
   try {
-    snap = await fbGetDocs(dataQuery);
+    const snap = await fbGetDocs(dataQuery);
+    docs = snap.docs.map((d) => {
+      const data = d.data();
+      return { id: d.id, ...data, _snap: d } as Job & { _snap: DocumentSnapshot };
+    });
+    docsFetched = true;
   } catch (err) {
-    console.error("[fetchJobs] data query failed:", err);
-    return { jobs: [], total: 0, page };
+    console.error("[fetchJobs] data query with order failed (missing composite index?):", err);
   }
 
-  let docs = snap.docs.map((d) => {
-    const data = d.data();
-    return { id: d.id, ...data, _snap: d } as Job & { _snap: DocumentSnapshot };
-  });
+  if (!docsFetched) {
+    try {
+      const fallbackQuery = fbQuery(jobsCol(), ...filterConstraints, fbLimit(fetchLimit));
+      const snap = await fbGetDocs(fallbackQuery);
+      docs = snap.docs.map((d) => {
+        const data = d.data();
+        return { id: d.id, ...data, _snap: d } as Job & { _snap: DocumentSnapshot };
+      });
+
+      if (filters.sort === "closing") {
+        docs.sort((a, b) => {
+          const ad = a.closing_date ? new Date(a.closing_date).getTime() : Infinity;
+          const bd = b.closing_date ? new Date(b.closing_date).getTime() : Infinity;
+          return ad - bd;
+        });
+      } else {
+        docs.sort((a, b) => {
+          if (a.featured !== b.featured) return a.featured ? -1 : 1;
+          const ap = a.posted_at ? new Date(a.posted_at).getTime() : 0;
+          const bp = b.posted_at ? new Date(b.posted_at).getTime() : 0;
+          return bp - ap;
+        });
+      }
+      docsFetched = true;
+    } catch (fallbackErr) {
+      console.error("[fetchJobs] fallback data query also failed:", fallbackErr);
+      return { jobs: [], total, page };
+    }
+  }
 
   if (textTerm) {
     docs = docs.filter((j) => containsText(j, textTerm));

@@ -31,7 +31,7 @@ export function AdminShell({
           <Link to="/admin" className="flex flex-col">
             <img
               src={logo1}
-              alt="Sajobshub logo"
+              alt="Sacareerhub logo"
               loading="lazy"
               className="h-12 w-auto object-contain"
             />

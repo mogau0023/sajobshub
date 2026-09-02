@@ -12,6 +12,7 @@ import {
 } from "recharts";
 
 import { AdminShell } from "@/components/admin-shell";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import {
   jobsCol,
   pageEventsCol,
@@ -27,9 +28,9 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/analytics")({
   head: () => ({
     meta: [
-      { title: "Traffic Analytics — SA Jobs Admin" },
-      { name: "description", content: "Site traffic and vacancy performance for SA Jobs." },
-      { property: "og:title", content: "Traffic Analytics — SA Jobs Admin" },
+      { title: "Traffic Analytics — SA Career Hub Admin" },
+      { name: "description", content: "Site traffic and vacancy performance for SA Career Hub." },
+      { property: "og:title", content: "Traffic Analytics — SA Career Hub Admin" },
       {
         property: "og:description",
         content: "Internal traffic and vacancy performance reporting.",
@@ -291,86 +292,93 @@ function AdminAnalytics() {
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {cards.map((c) => (
-          <div key={c.label} className="rounded-lg border border-border bg-card p-4 shadow-sm">
-            <p className="text-2xl font-bold text-navy">{c.value}</p>
-            <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {c.label}
-            </p>
-          </div>
-        ))}
-      </div>
+      {site.isLoading ? (
+        <LoadingSpinner label="Loading analytics…" />
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {cards.map((c) => (
+            <div key={c.label} className="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p className="text-2xl font-bold text-navy">{c.value}</p>
+              <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {c.label}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <div className="mt-4">
-        <Panel title={`Daily traffic — last ${days} days`}>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={site.data?.daily ?? []}
-                margin={{ top: 5, right: 8, left: -20, bottom: 0 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="day"
-                  tick={{ fontSize: 10 }}
-                  tickFormatter={(d: string) => d.slice(5)}
-                />
-                <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="views"
-                  name="Views"
-                  stroke="hsl(var(--navy))"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="visitors"
-                  name="Visitors"
-                  stroke="hsl(var(--gold))"
-                  strokeWidth={2}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="apply_clicks"
-                  name="Apply clicks"
-                  stroke="hsl(var(--destructive))"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </Panel>
-      </div>
+      {!site.isLoading && (
+        <div className="mt-4">
+          <Panel title={`Daily traffic — last ${days} days`}>
+            <div className="h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={site.data?.daily ?? []}
+                  margin={{ top: 5, right: 8, left: -20, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis
+                    dataKey="day"
+                    tick={{ fontSize: 10 }}
+                    tickFormatter={(d: string) => d.slice(5)}
+                  />
+                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="views"
+                    name="Views"
+                    stroke="hsl(var(--navy))"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="visitors"
+                    name="Visitors"
+                    stroke="hsl(var(--gold))"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="apply_clicks"
+                    name="Apply clicks"
+                    stroke="hsl(var(--destructive))"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </Panel>
+        </div>
+      )}
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Panel title="Top pages">
-          <RankList
-            rows={(site.data?.top_pages ?? []).map((p) => ({ label: p.path, value: p.views }))}
-          />
-        </Panel>
-        <Panel title="Top referrers">
-          <RankList
-            rows={(site.data?.top_referrers ?? []).map((r) => ({
-              label: r.referrer,
-              value: r.views,
-            }))}
-          />
-        </Panel>
-        <Panel title="Top provinces">
-          <RankList
-            rows={(site.data?.top_provinces ?? []).map((p) => ({
-              label: p.province,
-              value: p.views,
-            }))}
-          />
-        </Panel>
-        <Panel title="Top categories">
+      {!site.isLoading && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Panel title="Top pages">
+            <RankList
+              rows={(site.data?.top_pages ?? []).map((p) => ({ label: p.path, value: p.views }))}
+            />
+          </Panel>
+          <Panel title="Top referrers">
+            <RankList
+              rows={(site.data?.top_referrers ?? []).map((r) => ({
+                label: r.referrer,
+                value: r.views,
+              }))}
+            />
+          </Panel>
+          <Panel title="Top provinces">
+            <RankList
+              rows={(site.data?.top_provinces ?? []).map((p) => ({
+                label: p.province,
+                value: p.views,
+              }))}
+            />
+          </Panel>
+          <Panel title="Top categories">
           <RankList
             rows={(site.data?.top_categories ?? []).map((c) => ({
               label: c.category,
@@ -378,7 +386,8 @@ function AdminAnalytics() {
             }))}
           />
         </Panel>
-      </div>
+        </div>
+      )}
 
       <div className="mt-4 rounded-lg border border-border bg-card shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border p-4">
@@ -409,7 +418,9 @@ function AdminAnalytics() {
         </div>
 
         {jobs.isLoading && (
-          <p className="p-4 text-sm text-muted-foreground">Loading vacancy performance…</p>
+          <div className="p-4">
+            <LoadingSpinner label="Loading vacancy performance…" />
+          </div>
         )}
         {!jobs.isLoading && jobRows.length === 0 && (
           <p className="p-4 text-sm text-muted-foreground">No vacancy data for this period yet.</p>

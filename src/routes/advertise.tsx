@@ -7,16 +7,16 @@ import { SITE_EMAIL } from "@/lib/sa-jobs";
 export const Route = createFileRoute("/advertise")({
   head: () => ({
     meta: [
-      { title: "Advertise a Vacancy — SA Jobs South Africa" },
+      { title: "Advertise a Vacancy — SA Career Hub South Africa" },
       {
         name: "description",
         content:
-          "Reach thousands of South African job seekers. Submit your vacancy, learnership or internship to the SA Jobs editorial team for publication.",
+          "Reach thousands of South African job seekers. Submit your vacancy, learnership or internship to the SA Career Hub editorial team for publication.",
       },
-      { property: "og:title", content: "Advertise a Vacancy on SA Jobs" },
+      { property: "og:title", content: "Advertise a Vacancy on SA Career Hub" },
       {
         property: "og:description",
-        content: "Submit vacancies, learnerships and internships for publication on SA Jobs.",
+        content: "Submit vacancies, learnerships and internships for publication on SA Career Hub.",
       },
     ],
   }),
@@ -47,7 +47,7 @@ function AdvertisePage() {
       <main className="mx-auto max-w-3xl space-y-6 px-4 py-8">
         <h1 className="font-display text-2xl font-bold">Advertise a Vacancy</h1>
         <p className="text-sm leading-relaxed text-foreground/90">
-          SA Jobs is read daily by matriculants, graduates and experienced professionals across all
+          SA Career Hub is read daily by matriculants, graduates and experienced professionals across all
           nine provinces. Send us your vacancy and our editorial team will review, format and
           publish it — usually within one working day.
         </p>

@@ -76,13 +76,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SA Jobs — South African Vacancies, Learnerships & Internships" },
+      { title: "SA Career Hub — South African Vacancies, Learnerships & Internships" },
       {
         name: "description",
         content:
-          "SA Jobs publishes verified South African vacancies, learnerships, internships and government jobs. Free to browse, updated daily.",
+          "SA Career Hub publishes verified South African vacancies, learnerships, internships and government jobs. Free to browse, updated daily.",
       },
-      { name: "author", content: "SA Jobs" },
+      { name: "author", content: "SA Career Hub" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

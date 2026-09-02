@@ -5,6 +5,7 @@ import { useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard } from "@/components/job-card";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { fetchJobs, PAGE_SIZE, type JobFilters } from "@/lib/job-queries";
 import {
   CATEGORIES,
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/jobs/")({
   },
   head: () => ({
     meta: [
-      { title: "Browse Jobs in South Africa — SA Jobs" },
+      { title: "Browse Jobs in South Africa — SA Career Hub" },
       {
         name: "description",
         content:
@@ -101,7 +102,7 @@ function JobsPage() {
   const setFilter = (patch: Partial<Search>) =>
     navigate({ to: ".", search: (prev) => ({ ...prev, ...patch, page: undefined }) });
 
-  const { data, isFetching, error } = useQuery({
+  const { data, isLoading, isFetching, error } = useQuery({
     queryKey: ["jobs", search],
     queryFn: () => fetchJobs(search),
     placeholderData: keepPreviousData,
@@ -138,9 +139,16 @@ function JobsPage() {
       <main className="mx-auto max-w-5xl px-4 py-6">
         <h1 className="font-display text-2xl font-bold">Browse Vacancies</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          {isFetching && !data
-            ? "Loading vacancies…"
-            : `${total} vacancy${total === 1 ? "" : "s"} found`}
+          {isLoading ? (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-solid border-navy border-r-transparent border-t-transparent" />
+              Loading vacancies…
+            </span>
+          ) : isFetching && !data ? (
+            "Loading vacancies…"
+          ) : (
+            `${total} vacancy${total === 1 ? "" : "s"} found`
+          )}
         </p>
 
         <div className="mt-4 flex items-center gap-2">
@@ -237,10 +245,10 @@ function JobsPage() {
               create it automatically.
             </p>
           )}
-          {data?.jobs.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-          {data && data.jobs.length === 0 && !error && (
+          {isLoading && <LoadingSpinner label="Loading vacancies…" />}
+          {!isLoading &&
+            data?.jobs.map((job) => <JobCard key={job.id} job={job} />)}
+          {!isLoading && data && data.jobs.length === 0 && !error && (
             <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
               No vacancies match your search. Try removing a filter or check in the admin panel
               that the job's Status is set to 'published'.
