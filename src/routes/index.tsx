@@ -6,7 +6,12 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard } from "@/components/job-card";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { fetchLatestJobs, fetchPublishedCount } from "@/lib/job-queries";
+import {
+  fetchActiveCategories,
+  fetchActiveProvinces,
+  fetchLatestJobs,
+  fetchPublishedCount,
+} from "@/lib/job-queries";
 import { PROVINCES, slugify } from "@/lib/sa-jobs";
 import gautengImg from "@/assets/gauteng.jpg";
 import westernCapeImg from "@/assets/western-cape.jpg";
@@ -49,6 +54,14 @@ function Home() {
   const { data: publishedCount, isLoading: countLoading, error: countError } = useQuery({
     queryKey: ["jobs-count"],
     queryFn: fetchPublishedCount,
+  });
+  const { data: activeCategories } = useQuery({
+    queryKey: ["active-categories"],
+    queryFn: fetchActiveCategories,
+  });
+  const { data: activeProvinces } = useQuery({
+    queryKey: ["active-provinces"],
+    queryFn: fetchActiveProvinces,
   });
   const isLoading = jobsLoading || countLoading;
   const total =
@@ -93,7 +106,7 @@ function Home() {
             >
               All Jobs
             </Link>
-            {QUICK_FILTERS.map((cat) => (
+            {QUICK_FILTERS.filter((cat) => activeCategories?.includes(cat)).map((cat) => (
               <Link
                 key={cat}
                 to="/category/$slug"
@@ -154,43 +167,52 @@ function Home() {
         <section className="mt-10">
           <h2 className="mb-4 font-display text-lg font-bold">Browse by Province</h2>
           <div className="grid grid-cols-2 gap-3">
-            <Link
-              to="/province/$slug"
-              params={{ slug: "gauteng" }}
-              className="group relative h-24 overflow-hidden rounded-lg bg-navy"
-            >
-              <img
-                src={gautengImg}
-                alt="Johannesburg skyline at sunset"
-                width={800}
-                height={512}
-                loading="lazy"
-                className="absolute inset-0 size-full object-cover opacity-40 grayscale"
-              />
-              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold uppercase text-primary-foreground">
-                Gauteng
-              </span>
-            </Link>
-            <Link
-              to="/province/$slug"
-              params={{ slug: "western-cape" }}
-              className="group relative h-24 overflow-hidden rounded-lg bg-navy"
-            >
-              <img
-                src={westernCapeImg}
-                alt="Table Mountain in Cape Town"
-                width={800}
-                height={512}
-                loading="lazy"
-                className="absolute inset-0 size-full object-cover opacity-40 grayscale"
-              />
-              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold uppercase text-primary-foreground">
-                Western Cape
-              </span>
-            </Link>
+            {activeProvinces?.includes("Gauteng") && (
+              <Link
+                to="/province/$slug"
+                params={{ slug: "gauteng" }}
+                className="group relative h-24 overflow-hidden rounded-lg bg-navy"
+              >
+                <img
+                  src={gautengImg}
+                  alt="Johannesburg skyline at sunset"
+                  width={800}
+                  height={512}
+                  loading="lazy"
+                  className="absolute inset-0 size-full object-cover opacity-40 grayscale"
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-sm font-bold uppercase text-primary-foreground">
+                  Gauteng
+                </span>
+              </Link>
+            )}
+            {activeProvinces?.includes("Western Cape") && (
+              <Link
+                to="/province/$slug"
+                params={{ slug: "western-cape" }}
+                className="group relative h-24 overflow-hidden rounded-lg bg-navy"
+              >
+                <img
+                  src={westernCapeImg}
+                  alt="Table Mountain in Cape Town"
+                  width={800}
+                  height={512}
+                  loading="lazy"
+                  className="absolute inset-0 size-full object-cover opacity-40 grayscale"
+                />
+                <span className="absolute inset-0 flex items-center justify-center text-sm font-bold uppercase text-primary-foreground">
+                  Western Cape
+                </span>
+              </Link>
+            )}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {PROVINCES.filter((p) => p !== "Gauteng" && p !== "Western Cape").map((province) => (
+            {PROVINCES.filter(
+              (p) =>
+                p !== "Gauteng" &&
+                p !== "Western Cape" &&
+                activeProvinces?.includes(p),
+            ).map((province) => (
               <Link
                 key={province}
                 to="/province/$slug"

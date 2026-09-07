@@ -6,7 +6,13 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { JobCard } from "@/components/job-card";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { fetchJobs, PAGE_SIZE, type JobFilters } from "@/lib/job-queries";
+import {
+  fetchActiveCategories,
+  fetchActiveProvinces,
+  fetchJobs,
+  PAGE_SIZE,
+  type JobFilters,
+} from "@/lib/job-queries";
 import {
   CATEGORIES,
   DATE_POSTED_OPTIONS,
@@ -108,6 +114,17 @@ function JobsPage() {
     placeholderData: keepPreviousData,
   });
 
+  const { data: activeCategories } = useQuery({
+    queryKey: ["active-categories"],
+    queryFn: fetchActiveCategories,
+  });
+  const { data: activeProvinces } = useQuery({
+    queryKey: ["active-provinces"],
+    queryFn: fetchActiveProvinces,
+  });
+
+  const visibleCategories = CATEGORIES.filter((c) => activeCategories?.includes(c));
+  const visibleProvinces = PROVINCES.filter((p) => activeProvinces?.includes(p));
   const page = data?.page ?? 1;
   const total = data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -183,7 +200,7 @@ function JobsPage() {
             <Select
               label="Province"
               value={search.province}
-              options={PROVINCES}
+              options={visibleProvinces}
               onChange={(v) => setFilter({ province: v })}
             />
             <label className="flex flex-col gap-1">

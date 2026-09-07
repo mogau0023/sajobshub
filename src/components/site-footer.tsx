@@ -1,7 +1,24 @@
 import { Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { fetchActiveCategories } from "@/lib/job-queries";
 import { SITE_EMAIL } from "@/lib/sa-jobs";
 
+const FOOTER_CATEGORY_LINKS = [
+  { label: "Government Jobs", slug: "government-jobs", category: "Government Jobs" },
+  { label: "Graduates", slug: "graduate-jobs", category: "Graduate Jobs" },
+  { label: "Internships", slug: "internships", category: "Internships" },
+] as const;
+
 export function SiteFooter() {
+  const { data: activeCategories } = useQuery({
+    queryKey: ["active-categories"],
+    queryFn: fetchActiveCategories,
+  });
+
+  const visibleLinks = FOOTER_CATEGORY_LINKS.filter((l) =>
+    activeCategories?.includes(l.category),
+  );
+
   return (
     <footer className="mt-12 border-t border-border bg-card px-4 py-8">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -19,21 +36,13 @@ export function SiteFooter() {
               Job Seekers
             </h4>
             <ul className="space-y-1 text-sm font-medium">
-              <li>
-                <Link to="/category/$slug" params={{ slug: "government-jobs" }}>
-                  Government Jobs
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/$slug" params={{ slug: "graduate-jobs" }}>
-                  Graduates
-                </Link>
-              </li>
-              <li>
-                <Link to="/category/$slug" params={{ slug: "internships" }}>
-                  Internships
-                </Link>
-              </li>
+              {visibleLinks.map((link) => (
+                <li key={link.slug}>
+                  <Link to="/category/$slug" params={{ slug: link.slug }}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
           <div className="space-y-2">
