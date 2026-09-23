@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
+import { WhatsappChannelPopup } from "@/components/whatsapp-channel-popup";
 import { initGoogleAnalytics, trackPageView } from "@/lib/analytics";
 
 function NotFoundComponent() {
@@ -134,6 +135,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
+      <WhatsappChannelPopup />
       <Toaster position="top-center" />
     </QueryClientProvider>
   );
