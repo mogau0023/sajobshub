@@ -150,7 +150,7 @@ function Home() {
             <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
               {(publishedCount ?? 0) > 0
                 ? "Vacancies are being indexed — refresh in a minute or browse the All Jobs page."
-                : "No vacancies have been published yet. In the admin panel, make sure each job's Status is set to 'published'."}
+                : "No vacancies have been published yet. "}
             </p>
           )}
         </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, MessageCircle, X, ArrowRight } from "lucide-react";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Check, MessageCircle, X, ArrowRight, BellRing } from "lucide-react";
 
 import {
   Dialog,
@@ -13,48 +13,182 @@ import {
 import { cn } from "@/lib/utils";
 
 const WHATSAPP_CHANNEL_URL = "https://whatsapp.com/channel/0029Vb8LXTvIN9ik5rI9M52E";
-const STORAGE_KEY = "sa-jobs-hub:whatsapp-popup-dismissed";
+const STATE_KEY = "sa-jobs-hub:whatsapp-popup-state";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// Re-engagement schedule: increasing intervals so it doesn't feel spammy
+const REENGAGE_INTERVALS = [
+  0,           // First visit: show almost immediately
+  7 * DAY_MS,  // After 1st dismiss: show again in 7 days
+  14 * DAY_MS, // After 2nd dismiss: show again in 14 days
+  30 * DAY_MS, // After 3rd+ dismiss: show once a month max
+];
+
+interface PopupState {
+  dismissCount: number;
+  lastDismissedAt: number | null;
+  lastShownAt: number | null;
+  joined: boolean;
+}
+
+function readState(): PopupState {
+  try {
+    const raw = localStorage.getItem(STATE_KEY);
+    if (raw) return JSON.parse(raw) as PopupState;
+  } catch {
+    // ignore
+  }
+  return { dismissCount: 0, lastDismissedAt: null, lastShownAt: null, joined: false };
+}
+
+function writeState(state: PopupState) {
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
+
+function shouldShowModal(state: PopupState, now: number): boolean {
+  if (state.joined) return false; // Never show after they've joined
+  const lastDismissed = state.lastDismissedAt;
+  if (lastDismissed === null) return true; // First visit
+
+  const maxIdx = REENGAGE_INTERVALS.length - 1;
+  const idx = Math.min(Math.max(state.dismissCount, 0), maxIdx);
+  const interval: number = REENGAGE_INTERVALS[idx] as number;
+  const nextShowAt = lastDismissed + interval;
+  return now >= nextShowAt;
+}
 
 export function WhatsappChannelPopup() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [fabPulse, setFabPulse] = useState(false);
+  const stateRef = useRef<PopupState>(readState());
+  const timersRef = useRef<number[]>([]);
 
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const dismissed = localStorage.getItem(STORAGE_KEY);
-      if (!dismissed) {
-        // Show after a short delay for better UX
-        const timer = setTimeout(() => setOpen(true), 600);
-        return () => clearTimeout(timer);
-      }
-    } catch {
-      // localStorage unavailable, show popup anyway
-      const timer = setTimeout(() => setOpen(true), 600);
-      return () => clearTimeout(timer);
-    }
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach((id) => window.clearTimeout(id));
+    timersRef.current = [];
   }, []);
 
-  const handleClose = () => {
-    setOpen(false);
-    try {
-      localStorage.setItem(STORAGE_KEY, "1");
-    } catch {
-      // ignore storage errors
-    }
-  };
+  const showModal = useCallback(() => {
+    setOpen(true);
+    const now = Date.now();
+    stateRef.current = { ...stateRef.current, lastShownAt: now };
+    writeState(stateRef.current);
+  }, []);
 
-  const handleJoin = () => {
-    handleClose();
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    const now = Date.now();
+    stateRef.current = {
+      ...stateRef.current,
+      dismissCount: stateRef.current.dismissCount + 1,
+      lastDismissedAt: now,
+    };
+    writeState(stateRef.current);
+  }, []);
+
+  const handleJoin = useCallback(() => {
+    setOpen(false);
+    stateRef.current = { ...stateRef.current, joined: true };
+    writeState(stateRef.current);
     if (typeof window !== "undefined") {
       window.open(WHATSAPP_CHANNEL_URL, "_blank", "noopener,noreferrer");
     }
-  };
+  }, []);
+
+  const openModalFromFab = useCallback(() => {
+    setOpen(true);
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    const state = stateRef.current;
+    const now = Date.now();
+
+    // Don't auto-show if they already joined
+    if (state.joined) return;
+
+    if (shouldShowModal(state, now)) {
+      // First visit or returning after re-engagement cooldown
+      const isFirstVisit = state.lastDismissedAt === null;
+      const initialDelay = isFirstVisit ? 800 : 3500; // Give returning users more time to browse first
+
+      const t1 = window.setTimeout(() => {
+        showModal();
+      }, initialDelay);
+      timersRef.current.push(t1);
+    }
+
+    // --- Intent-based follow-ups for sessions where we don't auto-show ---
+    // If they've been on the site >15s and still haven't seen it, soft-trigger.
+    const t2 = window.setTimeout(() => {
+      const s = stateRef.current;
+      if (s.joined) return;
+      // Only show intent-triggered if we haven't shown it this session already
+      if (s.lastShownAt && s.lastShownAt > now - 1000) return;
+      // Pulse the FAB gently to catch attention without blocking the UI
+      setFabPulse(true);
+    }, 15000);
+    timersRef.current.push(t2);
+
+    // Exit-intent: show when user's mouse leaves the top of the window (desktop only)
+    if (typeof window !== "undefined" && typeof document !== "undefined") {
+      const handleMouseLeave = (e: MouseEvent) => {
+        if (e.clientY <= 0) {
+          const s = stateRef.current;
+          if (!s.joined && shouldShowModal(s, Date.now()) && !open) {
+            showModal();
+          }
+        }
+      };
+      document.addEventListener("mouseleave", handleMouseLeave);
+      return () => {
+        document.removeEventListener("mouseleave", handleMouseLeave);
+        clearTimers();
+      };
+    }
+
+    return clearTimers;
+  }, [showModal, clearTimers, open]);
 
   if (!mounted) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
+    <>
+      {/* Floating WhatsApp Button — always there, always accessible */}
+      {!stateRef.current.joined && (
+        <button
+          type="button"
+          onClick={openModalFromFab}
+          aria-label="Join our WhatsApp Channel"
+          className={cn(
+            "fixed bottom-5 right-5 z-40 flex items-center gap-2",
+            "h-14 px-4 rounded-full",
+            "bg-green-500 text-white",
+            "shadow-xl shadow-green-500/40 ring-1 ring-green-600/20",
+            "hover:bg-green-600 hover:scale-105 active:scale-100",
+            "transition-all duration-200",
+          )}
+        >
+          <span className={cn("relative inline-flex size-8 items-center justify-center")}>
+            <MessageCircle className={cn("h-6 w-6 relative z-10", fabPulse && "animate-bounce")} strokeWidth={2} />
+            {fabPulse && (
+              <>
+                <span className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-60" style={{ animationDuration: "1.5s" }} />
+                <BellRing className="absolute -top-1 -right-1 h-4 w-4 text-yellow-300 drop-shadow-sm z-20 animate-bounce" style={{ animationDelay: "0.3s" }} />
+              </>
+            )}
+          </span>
+          <span className="hidden sm:inline font-bold text-sm pr-1">Get Job Alerts</span>
+        </button>
+      )}
+
+      <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
       <DialogContent
         className={cn(
           "w-[95vw] max-w-3xl p-0 overflow-hidden border-0 sm:rounded-2xl",
@@ -247,6 +381,7 @@ export function WhatsappChannelPopup() {
         </div>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
 
